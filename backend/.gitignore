@@ -1,0 +1,27 @@
+/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+/dist/
+/build/
+.env
+*.swp
+*.swo
+*.bak
+*.tmp
+*.log
+/pnpm-lock.yaml
+/package-lock.json
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+.DS_Store  # macOS
+Thumbs.db  # Windows
+/coverage/
+/.eslintcache
+/.prettier
+/coverage/
+/docker-compose.override.yml
+*.sqlite
+*.db
