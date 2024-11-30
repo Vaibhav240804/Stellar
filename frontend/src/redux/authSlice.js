@@ -1,9 +1,10 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { login, fetchUserData, signup } from "../utils/api";
+import { login, fetchUserData, signup, verifyOtp } from "../utils/api";
 
 const initialState = {
   name: "",
   email: "",
+  otpemail: "",
   id: "",
   isError: false,
   isSuccess: false,
@@ -84,6 +85,7 @@ export const otpVal = createAsyncThunk(
   async (otpData, thunkAPI) => {
     try {
       const response = await verifyOtp(otpData);
+      console.log(response);
       return response;
     } catch (error) {
       const message =
@@ -107,6 +109,9 @@ const authSlice = createSlice({
       state.isLoading = false;
       state.message = "";
     },
+    addOtpEmail: (state, { payload }) => {
+      state.otpemail = payload;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(signin.pending, (state) => {
@@ -118,6 +123,7 @@ const authSlice = createSlice({
       state.name = payload.name;
       state.email = payload.email;
       state.id = payload.id;
+      state.message = payload.message;
     });
     builder.addCase(signin.rejected, (state, { payload }) => {
       state.isLoading = false;
@@ -130,7 +136,10 @@ const authSlice = createSlice({
     builder.addCase(shareToken.fulfilled, (state, { payload }) => {
       state.isLoading = false;
       state.isSuccess = true;
-      state.otp = payload.otp;
+      state.email = payload.email;
+      state.id = payload.id;
+      state.name = payload.name;
+      state.message = payload.message;
     });
     builder.addCase(shareToken.rejected, (state, { payload }) => {
       state.isLoading = false;
@@ -143,9 +152,7 @@ const authSlice = createSlice({
     builder.addCase(logup.fulfilled, (state, { payload }) => {
       state.isLoading = false;
       state.isSuccess = true;
-      state.name = payload.name;
-      state.email = payload.email;
-      state.id = payload.id;
+      state.message = payload.message;
     });
     builder.addCase(logup.rejected, (state, { payload }) => {
       state.isLoading = false;
@@ -173,6 +180,10 @@ const authSlice = createSlice({
     builder.addCase(otpVal.fulfilled, (state) => {
       state.isLoading = false;
       state.isSuccess = true;
+      state.name = payload.name;
+      state.email = payload.email;
+      state.id = payload.id;
+      state.message = payload.message;
     });
     builder.addCase(otpVal.rejected, (state, { payload }) => {
       state.isLoading = false;
@@ -184,6 +195,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { reset } = authSlice.actions;
+export const { reset, addOtpEmail } = authSlice.actions;
 
 export default authSlice.reducer;

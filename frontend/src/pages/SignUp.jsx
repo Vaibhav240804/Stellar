@@ -1,34 +1,24 @@
 import React, { useEffect } from "react";
-import { Button, Checkbox, Form, Input, Typography } from "antd";
+import { Button, Form, Input, Typography } from "antd";
 import { LockOutlined, MailOutlined, UserOutlined } from "@ant-design/icons";
 import stellar from "../assets/stellar.svg";
 import { logup, reset } from "../redux/authSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { redirect } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const { Text, Title, Link } = Typography;
 
 export default function SignUp() {
   const dispatch = useDispatch();
-  const { isLoading, isSuccess, isError, message } = useSelector(
-    (state) => state.auth
-  );
+  const { isSuccess, message } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isSuccess) {
-      toast.success("Account created successfully!");
-      console.log("Redirecting to login...");
-      toast.success("Redirecting to login...");
-      redirect("/login");
+      navigate("/login");
     }
-    if (isError) {
-      toast.error(message);
-    }
-    return () => {
-      dispatch(reset());
-    };
-  }, [isSuccess, isError, message]);
+  }, [isSuccess, message]);
 
   const onFinish = async (values) => {
     try {

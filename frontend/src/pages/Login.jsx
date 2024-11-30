@@ -2,35 +2,33 @@ import React, { useEffect } from "react";
 import { Button, Form, Input, Typography } from "antd";
 import { LockOutlined, MailOutlined } from "@ant-design/icons";
 import stellar from "../assets/stellar.svg";
-import { reset, signin } from "../redux/authSlice";
+import { reset, signin, addOtpEmail } from "../redux/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
-import { redirect } from "react-router-dom";
-
+import { useNavigate } from "react-router-dom";
+import { GoogleOutlined } from "@ant-design/icons";
 const { Text, Title, Link } = Typography;
 
 export default function Login() {
+  const backendURL = import.meta.env.VITE_BACKEND_URL;
+  const handleGoogleLogin = () => {
+    window.location.href = `${backendURL}/api/auth/google`;
+  };
+
   const dispatch = useDispatch();
-  const { isLoading, isSuccess, isError, message } = useSelector(
-    (state) => state.auth
-  );
+  const { isSuccess, message } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (isSuccess) {
-      toast.success("Logged in successfully, now enter the OTP!");
-      redirect("/otpscreen");
+    if (isSuccess && message === "Login successful, OTP sent to email") {
+      navigate("/otpscreen");
     }
-    if (isError) {
-      toast.error(message);
-    }
-    return () => {
-      dispatch(reset());
-    };
-  }, [isSuccess, isError, message]);
+  }, [isSuccess, message]);
 
   const onFinish = async (values) => {
     try {
       dispatch(signin(values));
+      dispatch(addOtpEmail(values.email));
     } catch (error) {
       const errmsg = error.response.data.error || "Something went wrong!";
       toast.error(errmsg);
@@ -98,6 +96,15 @@ export default function Login() {
               className="w-full rounded bg-blue-500 py-2 text-white hover:bg-blue-600"
             >
               Log in
+            </Button>
+            <Button
+              block
+              type="default"
+              onClick={handleGoogleLogin}
+              className="mt-4 w-full rounded bg-white border border-gray-300 py-2 text-gray-700 hover:bg-gray-100 flex items-center justify-center"
+            >
+              <GoogleOutlined className="mr-2" />
+              Log in with Google
             </Button>
             <div className="mt-4 text-center">
               <Text className="text-gray-600">Don't have an account?</Text>{" "}

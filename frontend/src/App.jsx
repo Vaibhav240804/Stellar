@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -9,40 +9,59 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import OtpInputScreen from "./components/OtpInputScreen";
 import { useDispatch, useSelector } from "react-redux";
-import { reset, shareToken } from "./redux/authSlice";
+import { shareToken } from "./redux/authSlice";
 import SignUp from "./pages/SignUp";
 import toast from "react-hot-toast";
 
 const App = () => {
-  const { email, isLoading } = useSelector((state) => state.auth);
+  const { email, isLoading, isSuccess, isError, message } = useSelector(
+    (state) => state.auth
+  );
+  const [authLoading, setAuthLoading] = useState(true);
   const [loadingId, setLoadingId] = useState(null);
 
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(shareToken());
+    if (!email) {
+      dispatch(shareToken()).finally(() => setAuthLoading(false));
+    } else {
+      setAuthLoading(false);
+    }
+  }, [dispatch, email]);
 
-    if (isLoading) {
+  useEffect(() => {
+    if (isLoading && !loadingId) {
       const id = toast.loading("Loading...");
       setLoadingId(id);
     }
-
-    return () => {
-      dispatch(reset());
+    if (!isLoading && loadingId) {
       toast.dismiss(loadingId);
-    };
-  }, [dispatch, isLoading]);
+      setLoadingId(null);
+    }
+    if (isSuccess) {
+      toast.success(message);
+    }
+    if (isError) {
+      toast.error(message);
+    }
+  }, [isLoading, isError, isSuccess, loadingId, message]);
+
+  if (authLoading) {
+    return <Loading />;
+  }
 
   return (
     <Router>
       <Routes>
         <Route
           path="/dashboard"
-          element={email ? <Dashboard /> : <Navigate to="/login" />}
+          element={
+            email ? <Dashboard /> : <Navigate to="/login" replace={true} />
+          }
         />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
-
         <Route path="/otpscreen" element={<OtpInputScreen />} />
       </Routes>
     </Router>

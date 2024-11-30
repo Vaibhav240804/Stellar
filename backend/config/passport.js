@@ -15,18 +15,24 @@ passport.use(
         const email = emails[0].value;
         const avatar = photos[0].value;
 
-        let user = await User.findOne({ googleId: id });
-
-        if (!user) {
-          user = await User.create({
-            googleId: id,
-            name: displayName,
-            email,
-            avatar,
+        try {
+          const user = await User.create({
+            googleId: profile.id,
+            name: profile.displayName,
+            email: profile.emails[0].value,
+            avatar: profile.photos[0]?.value,
           });
+          return done(null, user);
+        } catch (err) {
+          if (err.code === 11000) {
+            const existingUser = await User.findOne({
+              email: profile.emails[0].value,
+            });
+            return done(null, existingUser);
+          }
+          console.error("Error creating user:", err);
+          return done(err);
         }
-
-        done(null, user); 
       } catch (error) {
         done(error, null);
       }
@@ -35,7 +41,7 @@ passport.use(
 );
 
 passport.serializeUser((user, done) => {
-  done(null, user.id); 
+  done(null, user.id);
 });
 
 passport.deserializeUser(async (id, done) => {

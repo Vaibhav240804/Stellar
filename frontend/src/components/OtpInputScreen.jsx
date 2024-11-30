@@ -1,13 +1,24 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Input, Typography } from "antd";
 import { useDispatch, useSelector } from "react-redux";
+import { otpVal, reset } from "../redux/authSlice";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const { Title, Text } = Typography;
 
 export default function OtpInputScreen() {
   const [otp, setOtp] = useState(new Array(6).fill(""));
   const dispatch = useDispatch();
-  const { email } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
+  const { otpemail, isSuccess } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (!otpemail) {
+      toast.error("Please log in first!", { duration: 4000 });
+      navigate("/login");
+    }
+  }, [otpemail]);
 
   const handleChange = (value, index) => {
     if (!isNaN(value)) {
@@ -29,8 +40,24 @@ export default function OtpInputScreen() {
     }
   };
 
-  const handleSubmit = () => {
+  const handlePaste = (event) => {
+    const paste = event.clipboardData.getData("text");
+    if (!isNaN(paste) && paste.length === otp.length) {
+      const updatedOtp = paste.split("").slice(0, otp.length);
+      setOtp(updatedOtp);
+      updatedOtp.forEach((value, index) => {
+        document.getElementById(`otp-${index}`).value = value;
+      });
+    }
+  };
+
+  const handleSubmit = async () => {
     console.log("Entered OTP:", otp.join(""));
+    try {
+      dispatch(otpVal({ email: otpemail, otp: otp.join("") }));
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+    }
   };
 
   return (
@@ -51,6 +78,7 @@ export default function OtpInputScreen() {
               value={digit}
               onChange={(e) => handleChange(e.target.value, index)}
               onKeyDown={(e) => handleKeyDown(e, index)}
+              onPaste={index === 0 ? handlePaste : null}
               className="h-12 w-12 rounded-md border-gray-300 text-center text-lg font-semibold shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
             />
           ))}
@@ -67,7 +95,7 @@ export default function OtpInputScreen() {
           <Text className="text-gray-600">
             Didn’t receive the code?{" "}
             <button
-              onClick={() => console.log("Resend OTP")}
+              onClick={() => navigate("/login")}
               className="text-blue-500 hover:underline"
             >
               Resend OTP

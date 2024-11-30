@@ -42,7 +42,7 @@ router.get("/user", async (req, res) => {
   }
 });
 
-exports.generateToken = (user) => {
+exports.generateToken = async (user) => {
   return jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
     expiresIn: "1h",
   });
@@ -57,7 +57,10 @@ router.get(
   "/google/callback",
   passport.authenticate("google", { session: false }),
   (req, res) => {
-    const token = generateToken(req.user);
+    const user = req.user;
+    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
+    expiresIn: "1h",
+  });
 
     res.cookie("token", token, {
       httpOnly: true,
